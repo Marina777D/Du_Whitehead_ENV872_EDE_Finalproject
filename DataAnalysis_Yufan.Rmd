@@ -1,0 +1,12 @@
+
+
+```{r setup, include=FALSE}
+# Set your working directory
+
+# Load your packages
+
+# Set your ggplot theme
+
+# Load your datasets
+
+```
