@@ -17,6 +17,33 @@ library(knitr)
 library(tidyr)
 
 # Set your ggplot theme
+custom_theme <- theme(
+  # Background theme customization
+  panel.background = element_rect(fill = "white", color = "black"),  
+  # Panel background color
+  plot.background = element_rect(fill = "#f0f0f0", color = NA),  
+  # Plot area background
+  panel.grid.major = element_line(color = "gray", size = 0.5),  
+  # Major grid lines
+  panel.grid.minor = element_line(color = "lightgray", size = 0.25),  
+  # Minor grid lines
+  axis.line = element_line(color = "black"),  
+  # Axis lines
+  axis.text = element_text(size = 12, color = "black"),  
+  # Axis tick labels
+  axis.title = element_text(size = 14, face = "bold", color = "black"),  
+  # Axis titles
+  plot.title = element_text(size = 16, face = "bold", hjust = 0.5),  
+  # Plot title customization
+  legend.position = "none",  
+  # Hide legend
+  strip.background = element_rect(fill = "#D3D3D3", color = "black"),  
+  # Strip background for facets
+  strip.text = element_text(size = 14, face = "bold")  
+  # Facet label text
+)
+
+
 
 # Load your datasets
 fuel <- read.csv("Fuel_data.csv")
@@ -68,6 +95,40 @@ kable(industry_summary, caption = "Summary of Number of Reporters by Industry Se
 ## 2023 Data Overview by Greenhous Gas Type
 
 ```{r 2023 GHG summary, echo=FALSE, warning=FALSE, message=FALSE}
+# Reshape the data into long format
+ghgp_long <- ghgp2023 %>%
+  select(
+    CO2.emissions..non.biogenic., 
+    Methane..CH4..emissions, 
+    Nitrous.Oxide..N2O..emissions, 
+    HFC.emissions, 
+    PFC.emissions, 
+    SF6.emissions, 
+    NF3.emissions, 
+    Other.Fully.Fluorinated.GHG.emissions
+  ) %>%
+  pivot_longer(
+    cols = everything(),
+    names_to = "Gas_Type",
+    values_to = "Emissions"
+  )
+
+# View the reshaped data (first few rows)
+head(ghgp_long)
+```
+```{r 2023 GHG plot, echo=FALSE, warning=FALSE}
+# Create the bar chart with the custom theme
+ggplot(ghgp_long, aes(x = Emissions, y = Gas_Type, fill = Gas_Type)) +
+  geom_bar(stat = "identity") +
+  labs(
+    title = "Greenhouse Gas Emissions in 2023",
+    x = "Greenhouse Gas Type",
+    y = "Emissions (Tons of CO2)"
+  ) +
+  custom_theme +  # Apply the custom theme
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels
+  )
 
 ```
 
