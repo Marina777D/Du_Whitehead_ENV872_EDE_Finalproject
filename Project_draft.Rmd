@@ -49,11 +49,11 @@ ghgpyear <- read.csv("ghgp_data_by_year_2023.csv")
 
 \newpage
 
-# Exploratory Analysis 
+# Exploratory Analysis [delete later -1 in ideas]
 
+## 2023 Data Overview by Industry Type (Sectors)
 
-
-```{r 2023 summary}
+```{r 2023 sector summary, echo=FALSE, warning=FALSE, message=FALSE}
 # Split the "Industry.Type..sectors." column by commas and unnest into separate rows
 industry_summary <- ghgp2023 %>%
   separate_rows(`Industry.Type..sectors.`, sep = ",") %>%  # Correct column name
@@ -65,6 +65,14 @@ industry_summary <- ghgp2023 %>%
 kable(industry_summary, caption = "Summary of Number of Reporters by Industry Sector")
 ```
 
+## 2023 Data Overview by Greenhous Gas Type
+
+```{r 2023 GHG summary, echo=FALSE, warning=FALSE, message=FALSE}
+
+```
+
+
+
 \newpage
 
 # Analysis
@@ -73,9 +81,19 @@ kable(industry_summary, caption = "Summary of Number of Reporters by Industry Se
 
 
 
-## Question 1: <insert specific question here and add additional subsections for additional questions below, if needed>
+## Question 1: Which industries demonstrate the greatest change for significant emissions reductions over the past decade? [delete later -3 in ideas]
 
-## Question 2: 
+```{r time series, echo=FALSE, warning=FALSE, message=FALSE}
+
+```
+
+
+## Question 2: What role do facility and fuel characteristics play in driving this change over the past decade?
+
+### Facility Emission Analysis [delete later -5 in ideas]
+
+### Fuel Type Emission Analysis [delete later -7 in ideas]
+
 
 
 
