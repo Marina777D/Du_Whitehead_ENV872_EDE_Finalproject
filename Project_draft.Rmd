@@ -8,8 +8,8 @@
 
 ```{r setup, include=FALSE}
 # Set your working directory
-#setwd("~/EDE_FinalProject/code/Raw") Daniel's wd
-setwd("~/EDE_FinalProject/Raw")
+setwd("~/EDE_FinalProject/code/Raw") 
+#setwd("~/EDE_FinalProject/Raw")
 # Load your packages
 library(ggplot2)
 library(dplyr)
@@ -135,21 +135,24 @@ ggplot(ghgp_long, aes(x = Emissions, y = Gas_Type, fill = Gas_Type)) +
 
 ```{r 2023 Industry Sector plot, echo=FALSE, warning=FALSE, message=FALSE}
 # Calculate average CO2 emissions by industry sector
-CO2_2023 <- ghgp2023 %>% 
-  group_by(Industry.Type..sectors.) %>% 
+ CO2_2023 <- ghgp2023 %>%
+  separate_rows(`Industry.Type..sectors.`, sep = ",") %>%  # Correct column name
+  mutate(`Industry.Type..sectors.` = trimws(`Industry.Type..sectors.`)) %>%  # Remove extra spaces
+  group_by(`Industry.Type..sectors.`) %>%  # Group by the individual sectors
   summarise(Average_CO2 = mean(CO2.emissions..non.biogenic., na.rm = TRUE) / 10^6)
 
 # Generate the bar chart
-ggplot(CO2_2023, aes(x = Industry.Type..sectors., y = Average_CO2, fill = Industry.Type..sectors.)) +
+ggplot(CO2_2023, aes(x = reorder(Industry.Type..sectors., -Average_CO2), y = Average_CO2, fill = Industry.Type..sectors.)) +
   geom_bar(stat = "identity") +
   labs(title = "Average 2023 CO2 Emissions by Industry Sector",
        x = "Industry Sector",
-       y = "Average CO2 Emissions") +
+       y = "Average CO2 Emissions (MMT)") +
   custom_theme +  # Apply the custom theme
   theme(
     axis.text.x = element_text(hjust = 1)  # Rotate x-axis labels
   )+
  coord_flip() 
+
 
 ```
 ```{r 2023 Industry Sector plot, echo=FALSE, warning=FALSE, message=FALSE}
