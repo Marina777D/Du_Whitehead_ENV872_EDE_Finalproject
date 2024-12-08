@@ -8,8 +8,8 @@
 
 ```{r setup, include=FALSE}
 # Set your working directory
+#setwd("~/EDE_FinalProject/code/Raw") Daniel's wd
 setwd("~/EDE_FinalProject/Raw")
-
 # Load your packages
 library(ggplot2)
 library(dplyr)
@@ -131,8 +131,36 @@ ggplot(ghgp_long, aes(x = Emissions, y = Gas_Type, fill = Gas_Type)) +
   )
 
 ```
+## 2023 Data Overview by Greenhous Gas Type
+
+```{r 2023 Industry Sector plot, echo=FALSE, warning=FALSE, message=FALSE}
+# Calculate average CO2 emissions by industry sector
+CO2_2023 <- ghgp2023 %>% 
+  group_by(Industry.Type..sectors.) %>% 
+  summarise(Average_CO2 = mean(CO2.emissions..non.biogenic., na.rm = TRUE) / 10^6)
+
+# Generate the bar chart
+ggplot(CO2_2023, aes(x = Industry.Type..sectors., y = Average_CO2, fill = Industry.Type..sectors.)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Average 2023 CO2 Emissions by Industry Sector",
+       x = "Industry Sector",
+       y = "Average CO2 Emissions") +
+  custom_theme +  # Apply the custom theme
+  theme(
+    axis.text.x = element_text(hjust = 1)  # Rotate x-axis labels
+  )+
+ coord_flip() 
+
+```
+```{r 2023 Industry Sector plot, echo=FALSE, warning=FALSE, message=FALSE}
+# Calculate average CO2 emissions by industry sector
+RHC <- read.csv("ede_csv_unit_emissions.csv")
+CO2_2023 <- RHC %>% 
+  group_by(State) %>% 
+  summarise(Average_RHC = mean(Unit Maximum Rated Heat Input Capacity (mmBTU/hr), na.rm = TRUE)
 
 
+```
 
 \newpage
 
