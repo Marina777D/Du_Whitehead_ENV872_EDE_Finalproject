@@ -131,7 +131,7 @@ ggplot(ghgp_long, aes(x = Emissions, y = Gas_Type, fill = Gas_Type)) +
   )
 
 ```
-## 2023 Data Overview by Greenhous Gas Type
+## 2023 CO2 Emissions by Industry Sector 
 
 ```{r 2023 Industry Sector plot, echo=FALSE, warning=FALSE, message=FALSE}
 # Calculate average CO2 emissions by industry sector
@@ -154,15 +154,89 @@ ggplot(CO2_2023, aes(x = reorder(Industry.Type..sectors., -Average_CO2), y = Ave
  coord_flip() 
 
 
+CO2_by_state_sector <- ghgp2023 %>%
+  separate_rows(`Industry.Type..sectors.`, sep = ",") %>%
+  mutate(`Industry.Type..sectors.` = trimws(`Industry.Type..sectors.`)) %>%
+  group_by(State, `Industry.Type..sectors.`) %>%
+  summarise(Total_CO2 = sum(CO2.emissions..non.biogenic., na.rm = TRUE) / 10^6) 
+
+# Generate the stacked bar chart
+ggplot(CO2_by_state_sector, 
+       aes(x = reorder(State, -Total_CO2), 
+           y = Total_CO2, 
+           fill = `Industry.Type..sectors.`)) +
+  geom_bar(stat = "identity") + 
+  labs(title = "Total 2023 CO2 Emissions by State and Industry Sector",
+       x = "State",
+       y = "Total CO2 Emissions (MMT)") +
+  custom_theme + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  coord_flip()
 ```
-```{r 2023 Industry Sector plot, echo=FALSE, warning=FALSE, message=FALSE}
+## 2023 Direct Emission Facilities by State
+```{r 2023 Facilities plot, echo=FALSE, warning=FALSE, message=FALSE}
 # Calculate average CO2 emissions by industry sector
-RHC <- read.csv("ede_csv_unit_emissions.csv")
-CO2_2023 <- RHC %>% 
+units_data <- read.csv("Raw/ede_csv_unit_emissions.csv", skip = 6)
+#RHC_by_state <- units_data %>% 
+  #group_by(State) %>% 
+  #summarise(Average_RHC = mean(Unit Maximum Rated Heat Input Capacity (mmBTU/hr), na.rm = TRUE)
+            
+Facilities_by_state <- units_data %>% 
+  filter(`Reporting.Year` == 2023) %>% 
   group_by(State) %>% 
-  summarise(Average_RHC = mean(Unit Maximum Rated Heat Input Capacity (mmBTU/hr), na.rm = TRUE)
+  summarise(FacilityCount = n_distinct(Facility.Id)) %>%
+  arrange(desc(FacilityCount))
+
+# Create the bar chart
+ggplot(Facilities_by_state, aes(x = reorder(State, -FacilityCount), y = FacilityCount, fill = FacilityCount)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(
+    title = "Number of Unique Facilities by State (2023)",
+    x = "State",
+    y = "Number of Facilities"
+  )
+
+```
+
+## 2023 Average Rated Heat Capacity by State
+```{r 2023 AVG Rated Heat Capacity plot, echo=FALSE, warning=FALSE, message=FALSE}
+# Calculate RHC by state
+
+AVG_RHC_by_state <- units_data %>% 
+  filter(`Reporting.Year` == 2023) %>% 
+  group_by(State) %>% 
+  summarise(Average_RHC = mean(Unit.Maximum.Rated.Heat.Input.Capacity..mmBTU.hr., na.rm = TRUE))%>%
+  arrange(desc(Average_RHC))
 
 
+# Create the bar chart
+ggplot(RHC_by_state, aes(x = reorder(State, -Average_RHC), y = Average_RHC, fill = Average_RHC)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(
+    title = "Average Rated Heat Capacity by State (2023)",
+    x = "State",
+    y = "Rated Heat Capacity"
+  )
+```
+
+## 2023 Total Rated Heat Capacity by State
+```{r 2023 Total Rated Heat Capacity plot, echo=FALSE, warning=FALSE, message=FALSE}
+Total_RHC_by_state <- units_data %>% 
+  filter(`Reporting.Year` == 2023) %>% 
+  group_by(State) %>% 
+  summarise(Total_RHC = sum(Unit.Maximum.Rated.Heat.Input.Capacity..mmBTU.hr., na.rm = TRUE)) %>%
+  arrange(desc(Total_RHC))
+# Create the bar chart
+ggplot(Total_RHC_by_state, aes(x = reorder(State, -Total_RHC), y = Total_RHC, fill = Total_RHC)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(
+    title = "Total Rated Heat Capacity by State (2023)",
+    x = "State",
+    y = "Rated Heat Capacity (MMBTU/hr)"
+  )
 ```
 
 \newpage
