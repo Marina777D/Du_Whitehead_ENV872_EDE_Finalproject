@@ -184,6 +184,48 @@ CO2_2023 <- RHC %>%
 
 ### Facility Emission Analysis [delete later -5 in ideas]
 
+```{r 2023 facility, echo=FALSE, warning=FALSE}
+ghgp2023 <- ghgp2023 %>%
+  mutate(Emission_Range = cut(
+    `Total.reported.direct.emissions`,
+    breaks = c(0, 25000, 50000, 100000, 250000, 1000000, Inf),
+    labels = c("0-25", "25-50", "50-100", "100-250", "250-1,000", ">1,000")
+  ))
+
+sector_summary <- ghgp2023 %>%
+  separate_rows(`Industry.Type..sectors.`, sep = ",") %>%  # Split sectors
+  mutate(`Industry.Type..sectors.` = trimws(`Industry.Type..sectors.`)) %>%  # Remove extra spaces
+  group_by(Emission_Range, `Industry.Type..sectors.`) %>%
+  summarise(
+    Total_Emissions = sum(`Total.reported.direct.emissions`, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+range_counts <- ghgp2023 %>%
+  group_by(Emission_Range) %>%
+  summarise(Count = n(), .groups = "drop")
+
+final_data <- sector_summary %>%
+  left_join(range_counts, by = "Emission_Range")
+```
+
+```{r 2023 facility plot, echo=FALSE, warning=FALS}
+# Plot
+ggplot(final_data, aes(x = Emission_Range, y = Total_Emissions, fill = Industry.Type..sectors.)) +
+  geom_bar(stat = "identity") +  # Stacked bar chart
+  geom_text(data = range_counts, aes(x = Emission_Range, y = max(final_data$Total_Emissions) * 1.05, label = Count),
+            inherit.aes = FALSE, size = 4) +  # Add count labels
+  labs(
+    title = "Facility Emission Ranges (2023)",
+    x = "Emission Range of Facilities (thousand metric tons CO2e)",
+    y = "2023 Emissions (million metric tons CO2e)",
+    fill = "Sector"
+  ) +
+  theme_minimal() +
+  custom_theme
+```
+
+
 ### Fuel Type Emission Analysis [delete later -7 in ideas]
 
 
