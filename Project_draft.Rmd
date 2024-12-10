@@ -70,13 +70,13 @@ ghgpyear <- read.csv("ghgp_data_by_year_2023.csv")
 
 \newpage
 
-# Dataset Information
+# Dataset Information -Yufan
 
 
 
 \newpage
 
-# Exploratory Analysis [delete later -1 in ideas]
+# Exploratory Analysis -Yufan
 
 ## 2023 Data Overview by Industry Type (Sectors)
 
@@ -290,7 +290,7 @@ ggplot(Total_RHC_by_state, aes(x = reorder(State, -Total_RHC), y = Total_RHC, fi
 
 ## Question 2: What role do facility and fuel characteristics play in driving this change over the past decade?
 
-### Facility Emission Analysis [delete later -5 in ideas]
+### Facility Emission Analysis 
 
 ```{r 2023 facility, echo=FALSE, warning=FALSE}
 ghgp2023 <- ghgp2023 %>%
@@ -334,7 +334,7 @@ ggplot(final_data, aes(x = Emission_Range, y = Total_Emissions, fill = Industry.
 ```
 
 
-### Fuel Type Emission Analysis [delete later -7 in ideas]
+### Fuel Type Emission Analysis
 
 
 
