@@ -141,6 +141,8 @@ ggplot(ghgp_long, aes(x = Emissions, y = Gas_Type, fill = Gas_Type)) +
   group_by(`Industry.Type..sectors.`) %>%  # Group by the individual sectors
   summarise(Average_CO2 = mean(CO2.emissions..non.biogenic., na.rm = TRUE) / 10^6)
 
+CO2_2023$Industry.Type..sectors. <- gsub("Fluorintaed", "Fluorinated", CO2_2023$Industry.Type..sectors.)
+CO2_2023$Industry.Type..sectors. <- gsub("Import and Export", "Distribution", CO2_2023$Industry.Type..sectors.)
 # Generate the bar chart
 ggplot(CO2_2023, aes(x = reorder(Industry.Type..sectors., -Average_CO2), y = Average_CO2, fill = Industry.Type..sectors.)) +
   geom_bar(stat = "identity") +
@@ -157,9 +159,11 @@ ggplot(CO2_2023, aes(x = reorder(Industry.Type..sectors., -Average_CO2), y = Ave
 CO2_by_state_sector <- ghgp2023 %>%
   separate_rows(`Industry.Type..sectors.`, sep = ",") %>%
   mutate(`Industry.Type..sectors.` = trimws(`Industry.Type..sectors.`)) %>%
-  group_by(State, `Industry.Type..sectors.`) %>%
+  group_by(State, `Industry.Type..sectors.`) %>% 
   summarise(Total_CO2 = sum(CO2.emissions..non.biogenic., na.rm = TRUE) / 10^6) 
-
+  
+CO2_by_state_sector$Industry.Type..sectors. <- gsub("Fluorintaed", "Fluorinated", CO2_by_state_sector$Industry.Type..sectors.)
+CO2_by_state_sector$Industry.Type..sectors. <- gsub("Import and Export", "Distribution", CO2_by_state_sector$Industry.Type..sectors.)
 # Generate the stacked bar chart
 ggplot(CO2_by_state_sector, 
        aes(x = reorder(State, -Total_CO2), 
@@ -170,8 +174,38 @@ ggplot(CO2_by_state_sector,
        x = "State",
        y = "Total CO2 Emissions (MMT)") +
   custom_theme + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   coord_flip()
+
+
+
+library(sf)
+# Filter out rows with Longitude greater than 100
+ghgp2023 <- ghgp2023[ghgp2023$Longitude <= 60, ]
+
+ghgp2023 <- ghgp2023[!is.na(ghgp2023$Longitude) & !is.na(ghgp2023$Latitude), ]
+USnation_sf<- st_read("Raw/cb_2018_us_nation_20m.shp")
+st_crs(USnation_sf)
+
+ghgp2023_sf <- ghgp2023 %>%
+  st_as_sf(coords = c("Longitude", "Latitude"), crs = 4269) 
+
+str(ghgp2023_sf)
+
+st_crs(ghgp2023_sf)
+
+ggplot() +
+  geom_sf(data = USnation_sf) + 
+  geom_sf(data = ghgp2023_sf,
+          aes(size = CO2.emissions..non.biogenic.,
+              color = CO2.emissions..non.biogenic.),  # Map CO2 emissions to color 
+          alpha = 0.5) + 
+  labs(title = "CO2 Emissions from Gas Plants",
+       size = "CO2 Emissions") +
+  coord_sf(xlim = c(-180, -50)) +  # Set longitude limits
+  scale_color_gradient(low = "cadetblue1", high = "grey1")+  # Define the color scale
+  scale_size(range = c(1,7)) 
+
 ```
 ## 2023 Direct Emission Facilities by State
 ```{r 2023 Facilities plot, echo=FALSE, warning=FALSE, message=FALSE}
@@ -211,7 +245,7 @@ AVG_RHC_by_state <- units_data %>%
 
 
 # Create the bar chart
-ggplot(RHC_by_state, aes(x = reorder(State, -Average_RHC), y = Average_RHC, fill = Average_RHC)) +
+ggplot(AVG_RHC_by_state, aes(x = reorder(State, -Average_RHC), y = Average_RHC, fill = Average_RHC)) +
   geom_bar(stat = "identity") +
   coord_flip() +
   labs(
