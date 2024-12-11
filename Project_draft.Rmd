@@ -65,14 +65,18 @@ ghgpyear <- read.csv("ghgp_data_by_year_2023.csv")
 ```
 
 # Rationale and Research Questions
+>With current global temperature rise accelerating towards dangerously high levels, there is a significant threat to meeting the targets established by the Paris Climate Accords. A main target for this agreement was to limit global temperature to a 2.0° increase. According to the International Energy Agency, the United States and China together accounted for 45% of global fuel combustion emissions. (IEA). With the US being such a large contributor to climate change, a major goal of climate scientists is to find ways to reduce US GHG emissions. For this analysis, we chose to look at EPA-provided emission data from 2010-2023. The main purpose of this analysis is to gain insight on which industries demonstrate the greatest potential for significant emissions reductions, and to better understand what role do facility and fuel characteristics play in driving this change over the past decade?
 
-
+>Industry sector data, greenhouse gas emission data, rated heat capacity data, and geospatial data will all be used to identify relationships and areas for improvement in the US. Additionally, most of our research questions are based on the most recent data, from 2023; however, time series analysis takes into account the full range of our data. Our central research questions set to examine how certain industry sectors should be limited in their production to limit the levels of greenhouse gas (especially carbon dioxide) emissions.
 
 \newpage
 
 # Dataset Information -Yufan
 
+# Data Cleaning
+>We used two main datasets, as well as a couple of shapefiles of the US. For the downloaded datasets, the main issue we encountered was that some facilities included multiple industry sector types. This made it difficult to group our data, so we decided to take the most significant sector (the first sector listed for each facility) and base our findings from that. Missing data values were excluded, and year/date format was checked to ensure the time series analysis would run smoothly. For the shapefile, we excluded all areas East of 50°West longitude, as the focus was on the US. After these initial steps were taken, we had confidence in the organization of our data and were ready for analysis.
 
+Downloaded datasets included date/time and mean discharge (cfs) columns. After the date column was properly classified as a date, unnecessary columns were removed from the data frame. Next, the date column was separated out to filter for years 1990-2021 and to filter for hurricane months (June-October). The dataset was then saved into the processed folder for each of the research locations. Missing data values were then filled using a linear interpolation and then daily averages of discharge were created in a new, clean column of daily means. After all fo these steps were taken the data was considered to be wrangled and was then ready for initial visualizations.
 
 \newpage
 
@@ -131,7 +135,7 @@ ggplot(ghgp_long, aes(x = Emissions, y = Gas_Type, fill = Gas_Type)) +
   )
 
 ```
-## 2023 CO2 Emissions by Industry Sector 
+## 2023 Average CO2 Emissions by Industry Sector 
 
 ```{r 2023 Industry Sector plot, echo=FALSE, warning=FALSE, message=FALSE}
 # Calculate average CO2 emissions by industry sector
@@ -154,7 +158,11 @@ ggplot(CO2_2023, aes(x = reorder(Industry.Type..sectors., -Average_CO2), y = Ave
     axis.text.x = element_text(hjust = 1)  # Rotate x-axis labels
   )+
  coord_flip() 
+```
 
+# 2023  Total CO2 Emissions by Industry Sector and State
+
+```{r 2023 Industry Sector by State plot, echo=FALSE, warning=FALSE, message=FALSE}
 
 CO2_by_state_sector <- ghgp2023 %>%
   separate_rows(`Industry.Type..sectors.`, sep = ",") %>%
@@ -177,7 +185,11 @@ ggplot(CO2_by_state_sector,
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   coord_flip()
 
+```
 
+# 2023 CO2 Emissions by State
+
+```{r 2023 Industry Sector plot, echo=FALSE, warning=FALSE, message=FALSE}
 
 library(sf)
 # Filter out rows with Longitude greater than 100
@@ -348,4 +360,4 @@ ggplot(final_data, aes(x = Emission_Range, y = Total_Emissions, fill = Industry.
 \newpage
 
 # References
-<add references here if relevant, otherwise delete this section> 
+“Greenhouse Gas Emissions from Energy Data Explorer – Data Tools.” IEA, 2 Aug. 2024, www.iea.org/data-and-statistics/data-tools/greenhouse-gas-emissions-from-energy-data-explorer. 
