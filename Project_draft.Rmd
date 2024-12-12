@@ -8,13 +8,15 @@
 
 ```{r setup, include=FALSE}
 # Set your working directory
-setwd("~/EDE_FinalProject/code/Raw") 
-#setwd("~/EDE_FinalProject/Raw")
+setwd("~/EDE_FinalProject/Raw") 
+
 # Load your packages
 library(ggplot2)
 library(dplyr)
 library(knitr)
 library(tidyr)
+library(gt)
+library(kableExtra)
 
 # Set your ggplot theme
 custom_theme <- theme(
@@ -71,18 +73,99 @@ ghgpyear <- read.csv("ghgp_data_by_year_2023.csv")
 
 \newpage
 
-# Dataset Information -Yufan
+# Dataset Information
+>The dataset utilized in this analysis is sourced from the Greenhouse Gas Reporting Program (GHGRP), a program administered by the Environmental Protection Agency (EPA) under congressional mandate.
+The GHGRP is the only comprehensive dataset that provides facility-level greenhouse gas (GHG) emissions data from major industrial sources across the United States. With over a decade of reporting (2010–2023) for most sectors, it offers critical insights into industrial emissions, including variations across industries, geographic regions, and time, down to the sector and facility levels.
+The dataset includes detailed variables necessary for analyzing emissions trends and decarbonization progress across sectors. Key data points include:
+Facility Information: Facility type, location, and rated heat capacity.
+Emissions Data: Greenhouse gas type (e.g., CO₂, CH₄, N₂O), emission quantities, and fuel type.
+Sector-Specific Details: Sector and subcategories (e.g., electricity generation, cement production).
+The dataset also provides temporal data that enables longitudinal analysis, revealing trends in emissions reductions and variability across geographic regions and industry types.
+The table below summarizes the structure of the dataset, including key variables, units, and their ranges or central tendencies:
+
+```{r dataset info, echo=FALSE, warning=FALSE}
+# Create the dataset structure as a data frame
+data_info <- data.frame(
+  Variable = c("Facility Type", "Location", "Rated Heat Capacity", 
+               "GHG Type", "Emissions", "Fuel Type", "Year"),
+  Description = c("Type of facility (e.g., power plant, refinery)",
+                  "Facility location (state and region)",
+                  "Facility’s energy production capacity",
+                  "Type of greenhouse gas (e.g., CO₂, CH₄, N₂O)",
+                  "Total emissions by facility",
+                  "Type of fuel used (e.g., coal, natural gas, biomass)",
+                  "Reporting year"),
+  Unit = c("Categorical", "Categorical", "Million BTUs", 
+           "Categorical", "Metric tons CO₂e", "Categorical", "Year")
+)
+
+# Create the table using kable
+kable(data_info, 
+      caption = "Table 1: Summary of Dataset Structure",
+      col.names = c("Variable", "Description", "Unit" )) %>%
+  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
+
+```
+
 
 # Data Cleaning
 >We used two main datasets, as well as a couple of shapefiles of the US. For the downloaded datasets, the main issue we encountered was that some facilities included multiple industry sector types. This made it difficult to group our data, so we decided to take the most significant sector (the first sector listed for each facility) and base our findings from that. Missing data values were excluded, and year/date format was checked to ensure the time series analysis would run smoothly. For the shapefile, we excluded all areas East of 50°West longitude, as the focus was on the US. After these initial steps were taken, we had confidence in the organization of our data and were ready for analysis.
 
-Downloaded datasets included date/time and mean discharge (cfs) columns. After the date column was properly classified as a date, unnecessary columns were removed from the data frame. Next, the date column was separated out to filter for years 1990-2021 and to filter for hurricane months (June-October). The dataset was then saved into the processed folder for each of the research locations. Missing data values were then filled using a linear interpolation and then daily averages of discharge were created in a new, clean column of daily means. After all fo these steps were taken the data was considered to be wrangled and was then ready for initial visualizations.
+>Downloaded datasets included date/time and mean discharge (cfs) columns. After the date column was properly classified as a date, unnecessary columns were removed from the data frame. Next, the date column was separated out to filter for years 1990-2021 and to filter for hurricane months (June-October). The dataset was then saved into the processed folder for each of the research locations. Missing data values were then filled using a linear interpolation and then daily averages of discharge were created in a new, clean column of daily means. After all fo these steps were taken the data was considered to be wrangled and was then ready for initial visualizations.
 
 \newpage
 
-# Exploratory Analysis -Yufan
+# Exploratory Analysis 
+> Our analysis focuses on assessing the performance of various sectors in decarbonization efforts, particularly their progress in reducing greenhouse gas (GHG) emissions. To facilitate this analysis, it is essential to first clarify the sector classifications within the dataset. Table 1 provides an overview of the Greenhouse Gas Reporting Program (GHGRP) sector classifications, grouping industrial activities into distinct categories such as Power Plants, Refineries, Chemicals, Fluorinated Chemicals, Waste, Metals, Minerals, Pulp & Paper, and Petroleum & Natural Gas Systems. Each sector is further broken down into specific subcategories, detailing the types of facilities and processes contributing to emissions, such as electricity generation under Power Plants or cement production under Minerals. This classification provides the foundation for understanding emission trends and evaluating decarbonization progress across sectors.
 
-## 2023 Data Overview by Industry Type (Sectors)
+```{r sector information, echo=FALSE, warning=FALSE}
+# Create a dataframe with the structure of the table
+ghgrp_data <- data.frame(
+  Sector = c("Power Plants", "Refineries", "Chemicals", "Fluorinated Chemicals", "Waste", 
+             "Metals", "Minerals", "Pulp & Paper", "Petroleum & Natural Gas Systems – Direct Emissions"),
+  Subcategories = c(
+    "Electricity Generation",
+    "Petroleum Refineries",
+    "Adipic Acid Production; Ammonia Manufacturing; Hydrogen Production; Nitric Acid Production; Phosphoric Acid Production; Petrochemical Production; Silicon Carbide Production; Titanium Dioxide Production; Other Chemicals Production",
+    "Fluorinated Gas Production; HCFC-22 Production/HFC-23 Destruction",
+    "Municipal Landfills; Industrial Waste Landfills; Industrial Wastewater Treatment; Solid Waste Combustion",
+    "Aluminum Production; Ferroalloy Production; Iron & Steel Production; Lead Production; Zinc Production; Magnesium Production; Other Metals Production",
+    "Cement Production; Glass Production; Lime Manufacturing; Soda Ash Manufacturing; Other Minerals Production",
+    "Chemical Pulp & Paper; Other Paper Producers",
+    "Onshore Production; Offshore Production; Gathering and Boosting; Natural Gas Processing; Natural Gas Transmission Compression; Natural Gas Transmission Pipelines; Natural Gas Distribution; Underground Natural Gas Storage; Liquefied Natural Gas Storage; Liquefied Natural Gas Import/Export; Other Petroleum and Natural Gas Systems"
+  )
+)
+
+# Split the long list into separate rows for better readability (if needed)
+ghgrp_data <- ghgrp_data %>%
+  mutate(Subcategories = strsplit(as.character(Subcategories), "; ")) %>%
+  tidyr::unnest(Subcategories)
+
+# Create the styled table using the `gt` package
+ghgrp_table <- gt(ghgrp_data) %>%
+  tab_header(
+    title = "GHGRP Sector Classifications"
+  ) %>%
+  cols_label(
+    Sector = "Sector",
+    Subcategories = "Subcategories"
+  ) %>%
+  tab_options(
+    table.width = px(800),
+    heading.title.font.size = px(18),
+    column_labels.font.weight = "bold"
+  )
+
+# Create the table and add a caption
+kable(
+  ghgrp_data,
+  caption = "Table 2: Classification of sectors under the Greenhouse Gas Reporting Program (GHGRP)."
+) %>%
+  kable_styling(full_width = FALSE, position = "left")
+```
+
+
+>The table 3 provides an overview of the distribution of reporting facilities across various industry sectors in the 2023 Greenhouse Gas Reporting Program (GHGRP) dataset. To create this summary, the industry sectors associated with each facility were split into individual categories and grouped for analysis. The number of reporters in each sector was then calculated, highlighting the contribution of different industries to overall emissions reporting. This breakdown offers valuable insights into the sectors with the most active reporting and provides a foundation for further sector-specific analysis of emissions trends and decarbonization progress.
 
 ```{r 2023 sector summary, echo=FALSE, warning=FALSE, message=FALSE}
 # Split the "Industry.Type..sectors." column by commas and unnest into separate rows
@@ -92,11 +175,14 @@ industry_summary <- ghgp2023 %>%
   group_by(`Industry.Type..sectors.`) %>%  # Group by the individual sectors
   summarise(Number_of_Reports = n())  # Count the number of reports for each sector
 
-# Display the summarized data as a table
-kable(industry_summary, caption = "Summary of Number of Reporters by Industry Sector")
+# Display the summarized data as a styled table
+kable(industry_summary, 
+      caption = "Table 3: Summary of Number of Reporters by Industry Sector", 
+      col.names = c("Industry Sector", "Number of Reports")) %>%
+  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 ```
 
-## 2023 Data Overview by Greenhous Gas Type
+>The bar chart (figure 1) illustrates the distribution of emissions by gas type. The chart highlights the dominant contributions of carbon dioxide (CO₂), with methane (CH₄) and nitrous oxide (N₂O) playing significant roles as well. This visualization emphasizes the need for sector-specific strategies to address each type of GHG.
 
 ```{r 2023 GHG summary, echo=FALSE, warning=FALSE, message=FALSE}
 # Reshape the data into long format
@@ -116,10 +202,8 @@ ghgp_long <- ghgp2023 %>%
     names_to = "Gas_Type",
     values_to = "Emissions"
   )
-
-# View the reshaped data (first few rows)
-head(ghgp_long)
 ```
+
 ```{r 2023 GHG plot, echo=FALSE, warning=FALSE}
 # Create the bar chart with the custom theme
 ggplot(ghgp_long, aes(x = Emissions, y = Gas_Type, fill = Gas_Type)) +
@@ -127,15 +211,29 @@ ggplot(ghgp_long, aes(x = Emissions, y = Gas_Type, fill = Gas_Type)) +
   labs(
     title = "Greenhouse Gas Emissions in 2023",
     x = "Greenhouse Gas Type",
-    y = "Emissions (Tons of CO2)"
+    y = "Emissions (Tons of CO2)",
+    caption = "Figure 1: Distribution of greenhouse gas emissions by gas type in 2023."
   ) +
   custom_theme +  # Apply the custom theme
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels
   )
-
 ```
-## 2023 Average CO2 Emissions by Industry Sector 
+\newpage
+
+# Analysis
+
+
+
+
+
+## Question 1: Which industries demonstrate the greatest change for significant emissions reductions over the past decade? 
+
+
+
+
+### 2023 Average CO2 Emissions by Industry Sector 
+>Daniel:
 
 ```{r 2023 Industry Sector plot, echo=FALSE, warning=FALSE, message=FALSE}
 # Calculate average CO2 emissions by industry sector
@@ -152,15 +250,26 @@ ggplot(CO2_2023, aes(x = reorder(Industry.Type..sectors., -Average_CO2), y = Ave
   geom_bar(stat = "identity") +
   labs(title = "Average 2023 CO2 Emissions by Industry Sector",
        x = "Industry Sector",
-       y = "Average CO2 Emissions (MMT)") +
+       y = "Average CO2 Emissions (MMT)",
+       caption= "Figure 2: Average 2023 CO2 Emissions by Industry Sector"
+       ) +
   custom_theme +  # Apply the custom theme
   theme(
     axis.text.x = element_text(hjust = 1)  # Rotate x-axis labels
   )+
  coord_flip() 
 ```
+### 2010-2023 Average CO2 Emissions by Industry Sector 
 
-# 2023  Total CO2 Emissions by Industry Sector and State
+```{r time series, echo=FALSE, warning=FALSE, message=FALSE}
+
+```
+
+
+## Question 2: spatial analysis
+>Daniel:
+
+### 2023  Total CO2 Emissions by Industry Sector and State
 
 ```{r 2023 Industry Sector by State plot, echo=FALSE, warning=FALSE, message=FALSE}
 
@@ -180,14 +289,15 @@ ggplot(CO2_by_state_sector,
   geom_bar(stat = "identity") + 
   labs(title = "Total 2023 CO2 Emissions by State and Industry Sector",
        x = "State",
-       y = "Total CO2 Emissions (MMT)") +
+       y = "Total CO2 Emissions (MMT)",
+       caption = "Figure 4: Total 2023 CO2 Emissions by State and Industry Sector ") +
   custom_theme + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   coord_flip()
 
 ```
 
-# 2023 CO2 Emissions by State
+### 2023 CO2 Emissions by State
 
 ```{r 2023 Industry Sector plot, echo=FALSE, warning=FALSE, message=FALSE}
 
@@ -213,13 +323,17 @@ ggplot() +
               color = CO2.emissions..non.biogenic.),  # Map CO2 emissions to color 
           alpha = 0.5) + 
   labs(title = "CO2 Emissions from Gas Plants",
-       size = "CO2 Emissions") +
+       size = "CO2 Emissions",
+       caption = "Figure 5: Map of CO2 emissions from gas plants across the United States"
+       ) +
   coord_sf(xlim = c(-180, -50)) +  # Set longitude limits
   scale_color_gradient(low = "cadetblue1", high = "grey1")+  # Define the color scale
   scale_size(range = c(1,7)) 
 
 ```
-## 2023 Direct Emission Facilities by State
+
+
+#### 2023 Direct Emission Facilities by State
 ```{r 2023 Facilities plot, echo=FALSE, warning=FALSE, message=FALSE}
 # Calculate average CO2 emissions by industry sector
 units_data <- read.csv("Raw/ede_csv_unit_emissions.csv", skip = 6)
@@ -240,67 +354,13 @@ ggplot(Facilities_by_state, aes(x = reorder(State, -FacilityCount), y = Facility
   labs(
     title = "Number of Unique Facilities by State (2023)",
     x = "State",
-    y = "Number of Facilities"
+    y = "Number of Facilities",
+    caption = "figure 6: Number of Unique Facilities by State (2023)"
   )
 
 ```
 
-## 2023 Average Rated Heat Capacity by State
-```{r 2023 AVG Rated Heat Capacity plot, echo=FALSE, warning=FALSE, message=FALSE}
-# Calculate RHC by state
-
-AVG_RHC_by_state <- units_data %>% 
-  filter(`Reporting.Year` == 2023) %>% 
-  group_by(State) %>% 
-  summarise(Average_RHC = mean(Unit.Maximum.Rated.Heat.Input.Capacity..mmBTU.hr., na.rm = TRUE))%>%
-  arrange(desc(Average_RHC))
-
-
-# Create the bar chart
-ggplot(AVG_RHC_by_state, aes(x = reorder(State, -Average_RHC), y = Average_RHC, fill = Average_RHC)) +
-  geom_bar(stat = "identity") +
-  coord_flip() +
-  labs(
-    title = "Average Rated Heat Capacity by State (2023)",
-    x = "State",
-    y = "Rated Heat Capacity"
-  )
-```
-
-## 2023 Total Rated Heat Capacity by State
-```{r 2023 Total Rated Heat Capacity plot, echo=FALSE, warning=FALSE, message=FALSE}
-Total_RHC_by_state <- units_data %>% 
-  filter(`Reporting.Year` == 2023) %>% 
-  group_by(State) %>% 
-  summarise(Total_RHC = sum(Unit.Maximum.Rated.Heat.Input.Capacity..mmBTU.hr., na.rm = TRUE)) %>%
-  arrange(desc(Total_RHC))
-# Create the bar chart
-ggplot(Total_RHC_by_state, aes(x = reorder(State, -Total_RHC), y = Total_RHC, fill = Total_RHC)) +
-  geom_bar(stat = "identity") +
-  coord_flip() +
-  labs(
-    title = "Total Rated Heat Capacity by State (2023)",
-    x = "State",
-    y = "Rated Heat Capacity (MMBTU/hr)"
-  )
-```
-
-\newpage
-
-# Analysis
-
-
-
-
-
-## Question 1: Which industries demonstrate the greatest change for significant emissions reductions over the past decade? [delete later -3 in ideas]
-
-```{r time series, echo=FALSE, warning=FALSE, message=FALSE}
-
-```
-
-
-## Question 2: What role do facility and fuel characteristics play in driving this change over the past decade?
+## Question 3: What role do facility and fuel characteristics play in driving this change over the past decade?
 
 ### Facility Emission Analysis 
 
@@ -347,6 +407,53 @@ ggplot(final_data, aes(x = Emission_Range, y = Total_Emissions, fill = Industry.
 
 
 ### Fuel Type Emission Analysis
+
+
+
+
+## Question 4: Rated heat capacity
+>Daniel:
+
+### 2023 Average Rated Heat Capacity by State
+```{r 2023 AVG Rated Heat Capacity plot, echo=FALSE, warning=FALSE, message=FALSE}
+# Calculate RHC by state
+
+AVG_RHC_by_state <- units_data %>% 
+  filter(`Reporting.Year` == 2023) %>% 
+  group_by(State) %>% 
+  summarise(Average_RHC = mean(Unit.Maximum.Rated.Heat.Input.Capacity..mmBTU.hr., na.rm = TRUE))%>%
+  arrange(desc(Average_RHC))
+
+
+# Create the bar chart
+ggplot(AVG_RHC_by_state, aes(x = reorder(State, -Average_RHC), y = Average_RHC, fill = Average_RHC)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(
+    title = "Average Rated Heat Capacity by State (2023)",
+    x = "State",
+    y = "Rated Heat Capacity",
+    caption = "Figure 7:Average Rated Heat Capacity by State (2023) "
+  )
+```
+
+### 2023 Total Rated Heat Capacity by State
+```{r 2023 Total Rated Heat Capacity plot, echo=FALSE, warning=FALSE, message=FALSE}
+Total_RHC_by_state <- units_data %>% 
+  filter(`Reporting.Year` == 2023) %>% 
+  group_by(State) %>% 
+  summarise(Total_RHC = sum(Unit.Maximum.Rated.Heat.Input.Capacity..mmBTU.hr., na.rm = TRUE)) %>%
+  arrange(desc(Total_RHC))
+# Create the bar chart
+ggplot(Total_RHC_by_state, aes(x = reorder(State, -Total_RHC), y = Total_RHC, fill = Total_RHC)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(
+    title = "Total Rated Heat Capacity by State (2023)",
+    x = "State",
+    y = "Rated Heat Capacity (MMBTU/hr)"
+  )
+```
 
 
 
