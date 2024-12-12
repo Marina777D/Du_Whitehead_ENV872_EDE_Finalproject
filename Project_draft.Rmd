@@ -31,17 +31,17 @@ custom_theme <- theme(
   # Minor grid lines
   axis.line = element_line(color = "black"),  
   # Axis lines
-  axis.text = element_text(size = 12, color = "black"),  
+  axis.text = element_text(size = 8, color = "black"),  
   # Axis tick labels
-  axis.title = element_text(size = 14, face = "bold", color = "black"),  
+  axis.title = element_text(size = 10, color = "black"),  
   # Axis titles
-  plot.title = element_text(size = 16, face = "bold", hjust = 0.5),  
+  plot.title = element_text(size = 12, face = "bold", hjust = 0.5),  
   # Plot title customization
   legend.position = "none",  
   # Hide legend
   strip.background = element_rect(fill = "#D3D3D3", color = "black"),  
   # Strip background for facets
-  strip.text = element_text(size = 14, face = "bold")  
+  strip.text = element_text(size = 10, face = "bold")  
   # Facet label text
 )
 
@@ -219,17 +219,13 @@ ggplot(ghgp_long, aes(x = Emissions, y = Gas_Type, fill = Gas_Type)) +
     axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels
   )
 ```
+
 \newpage
 
 # Analysis
 
 
-
-
-
 ## Question 1: Which industries demonstrate the greatest change for significant emissions reductions over the past decade? 
-
-
 
 
 ### 2023 Average CO2 Emissions by Industry Sector 
@@ -260,10 +256,45 @@ ggplot(CO2_2023, aes(x = reorder(Industry.Type..sectors., -Average_CO2), y = Ave
  coord_flip() 
 ```
 ### 2010-2023 Average CO2 Emissions by Industry Sector 
+>The emission trend 2010-2023 is shown in figure 3. Most industry stays stable but the refinery goes higher and higher. For sources reporting to the GHGRP, emissions decreased 4.4% from 2022 to 2023. Between 2011 and 2023, GHGRP-reported direct emissions (e.g. excluding suppliers) decreased 22.3%. This decline is primarily caused by the decline in reported emissions from power plants, which decreased 33.8% over the same period.
+
 
 ```{r time series, echo=FALSE, warning=FALSE, message=FALSE}
+emissions_data <- ghgpyear %>%
+  select(Latest.Reported.Industry.Type..sectors., 
+         X2023.Total.reported.direct.emissions,
+         X2022.Total.reported.direct.emissions,
+         X2021.Total.reported.direct.emissions,
+         X2020.Total.reported.direct.emissions,
+         X2019.Total.reported.direct.emissions,
+         X2018.Total.reported.direct.emissions,
+         X2017.Total.reported.direct.emissions,
+         X2016.Total.reported.direct.emissions,
+         X2015.Total.reported.direct.emissions,
+         X2014.Total.reported.direct.emissions,
+         X2013.Total.reported.direct.emissions,
+         X2012.Total.reported.direct.emissions,
+         X2011.Total.reported.direct.emissions) %>%
+  pivot_longer(cols = starts_with("X"), names_to = "Year", values_to = "Emissions") %>%
+  group_by(Year, Latest.Reported.Industry.Type..sectors.) %>%
+  summarize(Emissions = sum(Emissions, na.rm = TRUE), .groups = "drop")
 
+# Clean the year column
+emissions_data$Year <- as.numeric(gsub("X(\\d{4}).*", "\\1", emissions_data$Year))
+
+# Plot the graph
+ggplot(emissions_data, aes(x = Year, y = Emissions / 1e6, color = Latest.Reported.Industry.Type..sectors.)) +
+  geom_line(size = 1) +
+  labs(
+    title = "2010-2023 Average CO2 Emissions by Industry Sector",
+    x = "Year",
+    y = "Emissions (million metric tons CO2e)",
+    caption="Figure 3: 2010-2023 Average CO2 Emissions by Industry Sector",
+    color = "Sector"
+  ) +
+  custom_theme 
 ```
+
 
 
 ## Question 2: spatial analysis
@@ -363,6 +394,8 @@ ggplot(Facilities_by_state, aes(x = reorder(State, -FacilityCount), y = Facility
 ## Question 3: What role do facility and fuel characteristics play in driving this change over the past decade?
 
 ### Facility Emission Analysis 
+>The GHGRP provides a robust dataset that can be used to determine the number of facilities at various emissions
+levels in many industry sectors. Figure 7 shows the emission ranges in 2023. The number on the bar shows the amount of facilities in that range. Most of reporting facilities had emissions less than 250,000 metric tons CO2e. In 2023, the 633 largest-emitting facilities—those emitting more than one million metric tons CO2e—accounted for approximately 1.71 billion metric tons of CO2e. These high-emitting facilities are mainly power plants, but they also include facilities in all other direct emitter sectors.
 
 ```{r 2023 facility, echo=FALSE, warning=FALSE}
 ghgp2023 <- ghgp2023 %>%
@@ -399,6 +432,7 @@ ggplot(final_data, aes(x = Emission_Range, y = Total_Emissions, fill = Industry.
     title = "Facility Emission Ranges (2023)",
     x = "Emission Range of Facilities (thousand metric tons CO2e)",
     y = "2023 Emissions (million metric tons CO2e)",
+    caption = "Figure 7: Facility Emission Ranges (2023)",
     fill = "Sector"
   ) +
   theme_minimal() +
@@ -407,6 +441,36 @@ ggplot(final_data, aes(x = Emission_Range, y = Total_Emissions, fill = Industry.
 
 
 ### Fuel Type Emission Analysis
+>Figure 8 illustrates the emissions of methane (CH4) and nitrous oxide (N2O) across various fuel types, measured in metric tons of CO2 equivalent (mt CO2e). Coal exhibits the highest emissions for both CH4 and N2O, with methane emissions being notably dominant. Other fuel types, such as petroleum products and solid byproducts, have significantly lower emissions in comparison, while natural gas shows relatively minimal emissions in both categories. 
+
+```{r fuel type, echo=FALSE, warning=FALSE}
+fuel_data <- fuel %>%
+  select(General.Fuel.Type, 
+         Fuel.Methane..CH4..emissions..mt.CO2e., 
+         Fuel.Nitrous.Oxide..N2O..emissions..mt.CO2e.) %>%
+  group_by(General.Fuel.Type) %>%
+  summarize(
+    CH4_Emissions = sum(Fuel.Methane..CH4..emissions..mt.CO2e., na.rm = TRUE),
+    N2O_Emissions = sum(Fuel.Nitrous.Oxide..N2O..emissions..mt.CO2e., na.rm = TRUE)
+  ) %>%
+  pivot_longer(cols = starts_with("CH4_Emissions"):starts_with("N2O_Emissions"), 
+               names_to = "Emission_Type", 
+               values_to = "Emissions") 
+
+# Plot the grouped bar chart
+ggplot(fuel_data, aes(x = General.Fuel.Type, y = Emissions, fill = Emission_Type)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(
+    title = "CH4 and N2O Emissions by Fuel Type",
+    x = "Fuel Type",
+    y = "Emissions (mt CO2e)",
+    caption = "Figure 8: GHG Emissions by Fuel Type in 2023",
+    fill = "Emission Type"
+  ) +
+  custom_theme +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
 
 
 
@@ -433,7 +497,7 @@ ggplot(AVG_RHC_by_state, aes(x = reorder(State, -Average_RHC), y = Average_RHC, 
     title = "Average Rated Heat Capacity by State (2023)",
     x = "State",
     y = "Rated Heat Capacity",
-    caption = "Figure 7:Average Rated Heat Capacity by State (2023) "
+    caption = "Figure 9:Average Rated Heat Capacity by State (2023) "
   )
 ```
 
@@ -451,7 +515,8 @@ ggplot(Total_RHC_by_state, aes(x = reorder(State, -Total_RHC), y = Total_RHC, fi
   labs(
     title = "Total Rated Heat Capacity by State (2023)",
     x = "State",
-    y = "Rated Heat Capacity (MMBTU/hr)"
+    y = "Rated Heat Capacity (MMBTU/hr)",
+    caption = "Figure 10:Total Rated Heat Capacity by State (2023) "
   )
 ```
 
@@ -462,9 +527,19 @@ ggplot(Total_RHC_by_state, aes(x = reorder(State, -Total_RHC), y = Total_RHC, fi
 \newpage
 
 # Summary and Conclusions
+> Question 1: Which industries demonstrate the greatest change for significant emissions reductions over the past decade?
 
+> The analysis of greenhouse gas emissions from 2010 to 2023 reveals significant trends and insights into the sources and drivers of emissions. While most industry sectors maintained stable emissions over this period, the refinery sector experienced a consistent increase. Overall, GHGRP-reported direct emissions decreased by 22.3% between 2011 and 2023, with a notable 4.4% decline from 2022 to 2023. This reduction is largely driven by a 33.8% decline in emissions from power plants, which remain the largest contributors among high-emitting facilities.
+
+
+
+>Question 3: What role do facility and fuel characteristics play in driving this change over the past decade?
+
+>Facility-level data highlights the disproportionate impact of a small subset of facilities. In 2023, the 633 largest emitters, primarily power plants, accounted for 1.71 billion metric tons of CO2e, underscoring the importance of targeting these high-emitting sources in mitigation strategies.
+Fuel type analysis further illustrates coal's significant role in greenhouse gas emissions, particularly for methane (CH4) and nitrous oxide (N2O). These findings emphasize the need for tailored approaches that address both facility and fuel characteristics. Transitioning to cleaner fuels like natural gas and reducing emissions from coal-intensive industries will be critical in driving further reductions in greenhouse gas emissions over the next decade.
 
 \newpage
 
 # References
-“Greenhouse Gas Emissions from Energy Data Explorer – Data Tools.” IEA, 2 Aug. 2024, www.iea.org/data-and-statistics/data-tools/greenhouse-gas-emissions-from-energy-data-explorer. 
+[1] “Greenhouse Gas Emissions from Energy Data Explorer – Data Tools.” IEA, 2 Aug. 2024, www.iea.org/data-and-statistics/data-tools/greenhouse-gas-emissions-from-energy-data-explorer. 
+[2] “GHGRP 2023 Overview Profile.” EPA, October 2024, www.epa.gov/system/files/documents/2024-10/ghgrp-2023-overview-profile.pdf.
