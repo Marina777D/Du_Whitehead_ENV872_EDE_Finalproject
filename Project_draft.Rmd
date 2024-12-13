@@ -1,3 +1,13 @@
+---
+title: 'Decarbonization Potential in Sectors: Facility and Fuel Impacts (2010-2023)'
+subtitle: "https://github.com/Marina777D/Du_Whitehead_ENV872_EDE_Finalproject"
+author: "Daniel Whitehead and Yufan Du"
+date: "Fall 2024"
+output:
+  html_document: default
+  pdf_document:
+    latex_engine: xelatex  
+---
 \newpage
 \tableofcontents 
 \newpage
@@ -8,7 +18,7 @@
 
 ```{r setup, include=FALSE}
 # Set your working directory
-setwd("~/EDE_FinalProject/Raw") 
+setwd("~/EDE_FinalProject/code") 
 
 # Load your packages
 library(ggplot2)
@@ -48,22 +58,22 @@ custom_theme <- theme(
 
 
 # Load your datasets
-fuel <- read.csv("Fuel_data.csv")
-ghgp2010 <- read.csv("ghgp_data_2010.csv")
-ghgp2011 <- read.csv("ghgp_data_2011.csv")
-ghgp2012 <- read.csv("ghgp_data_2012.csv")
-ghgp2013 <- read.csv("ghgp_data_2013.csv")
-ghgp2014 <- read.csv("ghgp_data_2014.csv")
-ghgp2015 <- read.csv("ghgp_data_2015.csv")
-ghgp2016 <- read.csv("ghgp_data_2016.csv")
-ghgp2017 <- read.csv("ghgp_data_2017.csv")
-ghgp2018 <- read.csv("ghgp_data_2018.csv")
-ghgp2019 <- read.csv("ghgp_data_2019.csv")
-ghgp2020 <- read.csv("ghgp_data_2020.csv")
-ghgp2021 <- read.csv("ghgp_data_2021.csv")
-ghgp2022 <- read.csv("ghgp_data_2022.csv")
-ghgp2023 <- read.csv("ghgp_data_2023.csv")
-ghgpyear <- read.csv("ghgp_data_by_year_2023.csv")
+fuel <- read.csv("Raw/Fuel_data.csv") 
+ghgp2010 <- read.csv("Raw/ghgp_data_2010.csv")
+ghgp2011 <- read.csv("Raw/ghgp_data_2011.csv")
+ghgp2012 <- read.csv("Raw/ghgp_data_2012.csv")
+ghgp2013 <- read.csv("Raw/ghgp_data_2013.csv")
+ghgp2014 <- read.csv("Raw/ghgp_data_2014.csv")
+ghgp2015 <- read.csv("Raw/ghgp_data_2015.csv")
+ghgp2016 <- read.csv("Raw/ghgp_data_2016.csv")
+ghgp2017 <- read.csv("Raw/ghgp_data_2017.csv")
+ghgp2018 <- read.csv("Raw/ghgp_data_2018.csv")
+ghgp2019 <- read.csv("Raw/ghgp_data_2019.csv")
+ghgp2020 <- read.csv("Raw/ghgp_data_2020.csv")
+ghgp2021 <- read.csv("Raw/ghgp_data_2021.csv")
+ghgp2022 <- read.csv("Raw/ghgp_data_2022.csv")
+ghgp2023 <- read.csv("Raw/ghgp_data_2023.csv")
+ghgpyear <- read.csv("Raw/ghgp_data_by_year_2023.csv")
 ```
 
 # Rationale and Research Questions
@@ -204,7 +214,7 @@ ghgp_long <- ghgp2023 %>%
   )
 ```
 
-```{r 2023 GHG plot, echo=FALSE, warning=FALSE}
+```{r 2023 GHG plot, echo=FALSE, warning=FALSE, fig.cap= "Distribution of greenhouse gas emissions by gas type in 2023"}
 # Create the bar chart with the custom theme
 ggplot(ghgp_long, aes(x = Emissions, y = Gas_Type, fill = Gas_Type)) +
   geom_bar(stat = "identity") +
@@ -229,9 +239,9 @@ ggplot(ghgp_long, aes(x = Emissions, y = Gas_Type, fill = Gas_Type)) +
 
 
 ### 2023 Average CO2 Emissions by Industry Sector 
->Daniel:
+>The "Figure 2: Average 2023 CO2 Emissions by Sector" bar chart displays the values of average carbon dioxide emissions by industry sector. The chart shows the high emission contributions from coal-based liquid fuel suppliers, refineries, and petroleum product suppliers, while comparing the different levels of emission rate down to the sectors of low emission (ex: industrial gas suppliers and distribution of equipment containing fluorinated chemicals). This visualization highlights the necessity of sector-specific strategies to decrease carbon dioxide emissions.
 
-```{r 2023 Industry Sector plot, echo=FALSE, warning=FALSE, message=FALSE}
+```{r 2023 Industry Sector CO2 Emissions, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=4, fig.align='center', out.width="80%", fig.cap= "Average 2023 CO2 Emissions by Sector"}
 # Calculate average CO2 emissions by industry sector
  CO2_2023 <- ghgp2023 %>%
   separate_rows(`Industry.Type..sectors.`, sep = ",") %>%  # Correct column name
@@ -244,10 +254,10 @@ CO2_2023$Industry.Type..sectors. <- gsub("Import and Export", "Distribution", CO
 # Generate the bar chart
 ggplot(CO2_2023, aes(x = reorder(Industry.Type..sectors., -Average_CO2), y = Average_CO2, fill = Industry.Type..sectors.)) +
   geom_bar(stat = "identity") +
-  labs(title = "Average 2023 CO2 Emissions by Industry Sector",
+  labs(title = "Average 2023 CO2 Emissions by Sector",
        x = "Industry Sector",
        y = "Average CO2 Emissions (MMT)",
-       caption= "Figure 2: Average 2023 CO2 Emissions by Industry Sector"
+       caption= "Figure 2: Average 2023 CO2 Emissions by Sector"
        ) +
   custom_theme +  # Apply the custom theme
   theme(
@@ -259,7 +269,7 @@ ggplot(CO2_2023, aes(x = reorder(Industry.Type..sectors., -Average_CO2), y = Ave
 >The emission trend 2010-2023 is shown in figure 3. Most industry stays stable but the refinery goes higher and higher. For sources reporting to the GHGRP, emissions decreased 4.4% from 2022 to 2023. Between 2011 and 2023, GHGRP-reported direct emissions (e.g. excluding suppliers) decreased 22.3%. This decline is primarily caused by the decline in reported emissions from power plants, which decreased 33.8% over the same period.
 
 
-```{r time series, echo=FALSE, warning=FALSE, message=FALSE}
+```{r time series, echo=FALSE, warning=FALSE, message=FALSE, fig.cap= "2010-2023 Average CO2 Emissions by Industry Sector", fig.align='center', out.width="80%"}
 emissions_data <- ghgpyear %>%
   select(Latest.Reported.Industry.Type..sectors., 
          X2023.Total.reported.direct.emissions,
@@ -293,16 +303,18 @@ ggplot(emissions_data, aes(x = Year, y = Emissions / 1e6, color = Latest.Reporte
     color = "Sector"
   ) +
   custom_theme 
+
 ```
 
 
 
-## Question 2: spatial analysis
->Daniel:
+## Question 2: Which U.S. states have the greatest potential for reducing their carbon footprint?
+
 
 ### 2023  Total CO2 Emissions by Industry Sector and State
+>The "Figure 4: Total 2023 CO2 Emissions by State and Industry Sector" bar chart visualizes the values of total carbon dioxide emissions by state and industry sector contribution. The chart displays the states with the highest emissions, such as Texas (with over 500 million metric tonnes (MMT)) and Lousiana. State governments should consider their rank in terms of emission contribution, and the states with higher emissions should look to reduce their current levels. This display supports the need for state governments and their industries to find methods of reducing emissions. Additionally, it shows the large contribution of power plants to the total emissions, as power plants make up a large percentage of emission output.
 
-```{r 2023 Industry Sector by State plot, echo=FALSE, warning=FALSE, message=FALSE}
+```{r 2023 Industry Sector by State plot, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=4, fig.align='center', out.width="80%", fig.cap= "Total 2023 CO2 Emissions by State and Industry Sector"}
 
 CO2_by_state_sector <- ghgp2023 %>%
   separate_rows(`Industry.Type..sectors.`, sep = ",") %>%
@@ -312,25 +324,35 @@ CO2_by_state_sector <- ghgp2023 %>%
   
 CO2_by_state_sector$Industry.Type..sectors. <- gsub("Fluorintaed", "Fluorinated", CO2_by_state_sector$Industry.Type..sectors.)
 CO2_by_state_sector$Industry.Type..sectors. <- gsub("Import and Export", "Distribution", CO2_by_state_sector$Industry.Type..sectors.)
+
+# Rename column for clarity
+CO2_by_state_sector <- CO2_by_state_sector %>%
+  rename(`Industry Sectors` = `Industry.Type..sectors.`)
+
 # Generate the stacked bar chart
 ggplot(CO2_by_state_sector, 
        aes(x = reorder(State, -Total_CO2), 
            y = Total_CO2, 
-           fill = `Industry.Type..sectors.`)) +
+           fill = `Industry Sectors`)) +
   geom_bar(stat = "identity") + 
   labs(title = "Total 2023 CO2 Emissions by State and Industry Sector",
        x = "State",
        y = "Total CO2 Emissions (MMT)",
-       caption = "Figure 4: Total 2023 CO2 Emissions by State and Industry Sector ") +
+       caption = "Figure 4: Total 2023 CO2 Emissions by State and Industry Sector") +
   custom_theme + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  coord_flip()
-
+  theme(
+    axis.text.x = element_text(angle = 70, hjust = 1),
+    legend.position = "right",
+    legend.text = element_text(size = 6),          # Smaller text size for legend items
+    legend.title = element_text(size = 8),        # Smaller title size for legend
+    legend.key.size = unit(0.4, "cm")) 
 ```
 
-### 2023 CO2 Emissions by State
 
-```{r 2023 Industry Sector plot, echo=FALSE, warning=FALSE, message=FALSE}
+### 2023 CO2 Emissions by State
+>The "Figure 5: Map of CO2 emissions from direct emitters across the United States" bar chart visualizes the values of total carbon dioxide emissions (in metric tonnes) by spatial lcoation in the US. The map displays a scale of low to high emissions from individual facilities. Portions of the map that are mostly covered in light blue means that there are many facilities that contribute relatively low to medium carbon dioxide emissions, while areas with large dark circles indicates the presence of facilities with significant emissions. It is also interesting to mention that although Alaska possesses the highest area of land, it has a substantially lower output of emissions than the second largest state, Texas. State governments should consider their spatial emission contribution, and the states with higher emissions should look to reduce their current levels. Additionally, for clarification purposes, non-biogenic refers to the carbon that has not been absorbed by living organisms. Both carbon emission scale are based on the non-biogenic values.
+
+```{r 2023 Industry Sector Emissions Map, echo=FALSE, warning=FALSE, message=FALSE, fig.cap= "Map of CO2 emissions from direct emitters across the United States"}
 
 library(sf)
 # Filter out rows with Longitude greater than 100
@@ -338,24 +360,20 @@ ghgp2023 <- ghgp2023[ghgp2023$Longitude <= 60, ]
 
 ghgp2023 <- ghgp2023[!is.na(ghgp2023$Longitude) & !is.na(ghgp2023$Latitude), ]
 USnation_sf<- st_read("Raw/cb_2018_us_nation_20m.shp")
-st_crs(USnation_sf)
 
 ghgp2023_sf <- ghgp2023 %>%
   st_as_sf(coords = c("Longitude", "Latitude"), crs = 4269) 
 
-str(ghgp2023_sf)
-
-st_crs(ghgp2023_sf)
 
 ggplot() +
   geom_sf(data = USnation_sf) + 
   geom_sf(data = ghgp2023_sf,
           aes(size = CO2.emissions..non.biogenic.,
-              color = CO2.emissions..non.biogenic.),  # Map CO2 emissions to color 
+              color = CO2.emissions..non.biogenic.),   
           alpha = 0.5) + 
-  labs(title = "CO2 Emissions from Gas Plants",
+  labs(title = "CO2 Emissions from Direct Emitters",
        size = "CO2 Emissions",
-       caption = "Figure 5: Map of CO2 emissions from gas plants across the United States"
+       caption = "Figure 5: Map of CO2 emissions from direct emitters"
        ) +
   coord_sf(xlim = c(-180, -50)) +  # Set longitude limits
   scale_color_gradient(low = "cadetblue1", high = "grey1")+  # Define the color scale
@@ -365,29 +383,35 @@ ggplot() +
 
 
 #### 2023 Direct Emission Facilities by State
-```{r 2023 Facilities plot, echo=FALSE, warning=FALSE, message=FALSE}
+>The "Figure 6: Number of Unique Facilities by State (2023)" bar chart visualizes the number of facilities in each state that directly emit carbon dioxide. Texas, Louisiana and California possess the highest numbers of facilities, with Texas having over 700. Vermont is accredited with the lowest number of facilities, and this low facility count is one of the reasons why Vermont also has the lowest carbon dioxide emissions output. The values in this chart could be interesting metrics to analyze when the US or individual states look to decrease their contributions to emission output and climate change.
+
+```{r 2023 Facilities by State, echo=FALSE, warning=FALSE, message=FALSE, fig.align='center',fig.cap= "Number of Unique Facilities by State (2023)", fig.height=8, fig.width=12, out.width="80%"}
 # Calculate average CO2 emissions by industry sector
 units_data <- read.csv("Raw/ede_csv_unit_emissions.csv", skip = 6)
-#RHC_by_state <- units_data %>% 
-  #group_by(State) %>% 
-  #summarise(Average_RHC = mean(Unit Maximum Rated Heat Input Capacity (mmBTU/hr), na.rm = TRUE)
-            
+
 Facilities_by_state <- units_data %>% 
-  filter(`Reporting.Year` == 2023) %>% 
-  group_by(State) %>% 
-  summarise(FacilityCount = n_distinct(Facility.Id)) %>%
-  arrange(desc(FacilityCount))
+filter(`Reporting.Year` == 2023) %>% 
+group_by(State) %>% 
+summarise(FacilityCount = n_distinct(Facility.Id)) %>%
+arrange(desc(FacilityCount))
+
+# Rename column for clarity
+Facilities_by_state <- Facilities_by_state %>%
+  rename(`Facilities` = `FacilityCount`)
 
 # Create the bar chart
-ggplot(Facilities_by_state, aes(x = reorder(State, -FacilityCount), y = FacilityCount, fill = FacilityCount)) +
-  geom_bar(stat = "identity") +
-  coord_flip() +
-  labs(
-    title = "Number of Unique Facilities by State (2023)",
-    x = "State",
-    y = "Number of Facilities",
-    caption = "figure 6: Number of Unique Facilities by State (2023)"
-  )
+ggplot(Facilities_by_state, 
+       aes(x = reorder(State, -Facilities), y = Facilities, fill = Facilities)) +
+geom_bar(stat = "identity") +
+#  coord_flip() +  <-- Remove this line to avoid flipping the axes
+labs(
+title = "Number of Unique Facilities by State (2023)",
+x = "State",
+y = "Number of Facilities",
+caption = "Figure 6: Number of Unique Facilities by State (2023)"
+) 
+
+
 
 ```
 
@@ -407,7 +431,7 @@ ghgp2023 <- ghgp2023 %>%
 
 sector_summary <- ghgp2023 %>%
   separate_rows(`Industry.Type..sectors.`, sep = ",") %>%  # Split sectors
-  mutate(`Industry.Type..sectors.` = trimws(`Industry.Type..sectors.`)) %>%  # Remove extra spaces
+  mutate(`Industry.Type..sectors.` = trimws(`Industry.Type..sectors.`)) %>%  # Remove extra dots
   group_by(Emission_Range, `Industry.Type..sectors.`) %>%
   summarise(
     Total_Emissions = sum(`Total.reported.direct.emissions`, na.rm = TRUE),
@@ -422,9 +446,16 @@ final_data <- sector_summary %>%
   left_join(range_counts, by = "Emission_Range")
 ```
 
-```{r 2023 facility plot, echo=FALSE, warning=FALS}
-# Plot
-ggplot(final_data, aes(x = Emission_Range, y = Total_Emissions, fill = Industry.Type..sectors.)) +
+```{r 2023 facility plot, echo=FALSE, warning=FALSE, fig.align='center', fig.width=10, fig.height=4,fig.cap= "Facility Emission Ranges (2023)", out.width="80%"}
+# PlotIndustry Sectors
+# Rename column for clarity
+final_data$Industry.Type..sectors. <- gsub("Fluorintaed", "Fluorinated", final_data$Industry.Type..sectors.)
+final_data$Industry.Type..sectors. <- gsub("Import and Export", "Distribution", final_data$Industry.Type..sectors.)
+
+final_data <- final_data %>%
+  rename(`Industry.Sectors` = `Industry.Type..sectors.`)
+
+ggplot(final_data, aes(x = Emission_Range, y = Total_Emissions, fill = Industry.Sectors)) +
   geom_bar(stat = "identity") +  # Stacked bar chart
   geom_text(data = range_counts, aes(x = Emission_Range, y = max(final_data$Total_Emissions) * 1.05, label = Count),
             inherit.aes = FALSE, size = 4) +  # Add count labels
@@ -436,14 +467,20 @@ ggplot(final_data, aes(x = Emission_Range, y = Total_Emissions, fill = Industry.
     fill = "Sector"
   ) +
   theme_minimal() +
-  custom_theme
+  custom_theme + 
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "right",
+    legend.text = element_text(size = 6),         
+    legend.title = element_text(size = 8),        
+    legend.key.size = unit(0.4, "cm")) 
 ```
 
 
 ### Fuel Type Emission Analysis
 >Figure 8 illustrates the emissions of methane (CH4) and nitrous oxide (N2O) across various fuel types, measured in metric tons of CO2 equivalent (mt CO2e). Coal exhibits the highest emissions for both CH4 and N2O, with methane emissions being notably dominant. Other fuel types, such as petroleum products and solid byproducts, have significantly lower emissions in comparison, while natural gas shows relatively minimal emissions in both categories. 
 
-```{r fuel type, echo=FALSE, warning=FALSE}
+```{r fuel type, echo=FALSE, warning=FALSE, fig.align='center', fig.height=4, fig.cap= "GHG Emissions by Fuel Type in 2023", out.width="80%"}
 fuel_data <- fuel %>%
   select(General.Fuel.Type, 
          Fuel.Methane..CH4..emissions..mt.CO2e., 
@@ -467,19 +504,25 @@ ggplot(fuel_data, aes(x = General.Fuel.Type, y = Emissions, fill = Emission_Type
     caption = "Figure 8: GHG Emissions by Fuel Type in 2023",
     fill = "Emission Type"
   ) +
-  custom_theme +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  custom_theme + 
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "right",
+    legend.text = element_text(size = 6),          
+    legend.title = element_text(size = 8),       
+    legend.key.size = unit(0.4, "cm")) 
 
 ```
 
 
 
 
-## Question 4: Rated heat capacity
->Daniel:
+## Question 4: What are the demographic distributions of rated heat capacities across U.S. states and territories?
 
 ### 2023 Average Rated Heat Capacity by State
-```{r 2023 AVG Rated Heat Capacity plot, echo=FALSE, warning=FALSE, message=FALSE}
+>The "Figure 10: Average Rated Heat Capacity by State (2023)" bar chart visualizes the average rated heat capacity for facilities in each state or territory. Puerto Rico and Hawaii possess the highest average rated heat capacities, while Washington D.C. and Rhode Island have the lowest average capacities. This data is needed to better understand why smaller states with smaller counts of facilities could have higher carbon dioxide emissions. A key question of this report was to find how rated heat capacity and carbon emissions relate. This chart gives us a better understanding of how facility sizes and outputs compare.
+
+```{r 2023 AVG Rated Heat Capacity plot, echo=FALSE, warning=FALSE, fig.cap= "Average Rated Heat Capacity by State (2023)", message=FALSE, fig.align='center', fig.width=12, fig.height=8, out.width="80%"}
 # Calculate RHC by state
 
 AVG_RHC_by_state <- units_data %>% 
@@ -489,20 +532,23 @@ AVG_RHC_by_state <- units_data %>%
   arrange(desc(Average_RHC))
 
 
-# Create the bar chart
+  
 ggplot(AVG_RHC_by_state, aes(x = reorder(State, -Average_RHC), y = Average_RHC, fill = Average_RHC)) +
   geom_bar(stat = "identity") +
-  coord_flip() +
+  #coord_flip() +
   labs(
     title = "Average Rated Heat Capacity by State (2023)",
     x = "State",
     y = "Rated Heat Capacity",
-    caption = "Figure 9:Average Rated Heat Capacity by State (2023) "
+    caption = "Figure 9: Average Rated Heat Capacity by State (2023) "
   )
 ```
 
+
 ### 2023 Total Rated Heat Capacity by State
-```{r 2023 Total Rated Heat Capacity plot, echo=FALSE, warning=FALSE, message=FALSE}
+> The "Figure 11:Total Rated Heat Capacity by State (2023)" bar chart visualizes the total rated heat capacity for facilities in each state. Similarly to the facility number chart, Texas and Louisiana possess the highest rated heat capacities. This is also significant in determining how rated heat capacity and carbon dioxide emissions relate, as Texas and Louisiana also have the highest emissions outputs. This data could be used for energy agencies when examining how US states and territories could look to decrease their contributions to emission output and climate change.
+
+```{r 2023 Total Rated Heat Capacity plot, echo=FALSE, warning=FALSE, message=FALSE, fig.cap= "Total Rated Heat Capacity by State (2023)", fig.align='center', fig.width=12, fig.height=8, out.width="80%"}
 Total_RHC_by_state <- units_data %>% 
   filter(`Reporting.Year` == 2023) %>% 
   group_by(State) %>% 
@@ -511,12 +557,11 @@ Total_RHC_by_state <- units_data %>%
 # Create the bar chart
 ggplot(Total_RHC_by_state, aes(x = reorder(State, -Total_RHC), y = Total_RHC, fill = Total_RHC)) +
   geom_bar(stat = "identity") +
-  coord_flip() +
   labs(
     title = "Total Rated Heat Capacity by State (2023)",
     x = "State",
     y = "Rated Heat Capacity (MMBTU/hr)",
-    caption = "Figure 10:Total Rated Heat Capacity by State (2023) "
+    caption = "Figure 10: Total Rated Heat Capacity by State (2023) "
   )
 ```
 
@@ -531,15 +576,23 @@ ggplot(Total_RHC_by_state, aes(x = reorder(State, -Total_RHC), y = Total_RHC, fi
 
 > The analysis of greenhouse gas emissions from 2010 to 2023 reveals significant trends and insights into the sources and drivers of emissions. While most industry sectors maintained stable emissions over this period, the refinery sector experienced a consistent increase. Overall, GHGRP-reported direct emissions decreased by 22.3% between 2011 and 2023, with a notable 4.4% decline from 2022 to 2023. This reduction is largely driven by a 33.8% decline in emissions from power plants, which remain the largest contributors among high-emitting facilities.
 
+>Question 2:  Which U.S. states have the greatest potential for reducing their carbon footprint?
 
+>From examination of US state (and territory) carbon dioxide emissions by sector, it is possible to determine the areas with the greatest opportunity for reduction. The data shows that Texas (with over 500 million metric tonnes (MMT)) has the highest contribution to national carbon emissions. State governments for larger contributors such as Texas, Louisiana, Indiana, and California have the most potential in creating policies to reduce their carbon footprints. Additionally, it shows the large contribution of power plants to the total emissions, as power plants make up a large percentage of emission output in most of the states and territories displayed in the data.
 
 >Question 3: What role do facility and fuel characteristics play in driving this change over the past decade?
 
 >Facility-level data highlights the disproportionate impact of a small subset of facilities. In 2023, the 633 largest emitters, primarily power plants, accounted for 1.71 billion metric tons of CO2e, underscoring the importance of targeting these high-emitting sources in mitigation strategies.
 Fuel type analysis further illustrates coal's significant role in greenhouse gas emissions, particularly for methane (CH4) and nitrous oxide (N2O). These findings emphasize the need for tailored approaches that address both facility and fuel characteristics. Transitioning to cleaner fuels like natural gas and reducing emissions from coal-intensive industries will be critical in driving further reductions in greenhouse gas emissions over the next decade.
 
-\newpage
+> Question 4: Does size of a facility play a role in carbon emissions? How are rated heat capacities distributed across U.S. states and territories?
+
+>According to data from the EPA, the areas with the highest total rated heat capacities align similarly to those with the highest total emissions and highest number of facilities. Texas, and a distant second, Louisiana both rank highly in terms of rated heat capacity, and this corresponds with their respective facility counts and emissions. However, while one may assume that larger states will have larger facilities, this is not always the case, as data shows that smaller states with smaller counts of facilities can have higher average capacities. This data shows which states have room for reduction in terms of rated heat capacity, as downsizing and transitioning to renewable energy facilities could play a major role in meeting the goals of the Paris Climate Agreement.
+
+>Conclusion: In conclusion, this analysis from 2010 to 2023 reveals a 22.3% reduction in overall greenhouse gas emissions, primarily driven by declines in power plant emissions. However, industries like refineries have seen continued emissions growth, highlighting the need for targeted reductions in high-emitting sectors. States like Texas and Louisiana, which contribute significantly to national emissions, offer substantial opportunities for carbon footprint reduction, particularly through policy changes focused on power plants. Facility size and fuel type are key factors in emissions, with the largest emitters concentrated in power plants. Addressing these facilities and shifting to renewable energy could significantly support achieving climate goals like the Paris Agreement. In summary, reducing emissions will require specific strategies at the industry, state, and facility levels, with a focus on high-emitting sectors and cleaner energy sources.
+
 
 # References
 [1] “Greenhouse Gas Emissions from Energy Data Explorer – Data Tools.” IEA, 2 Aug. 2024, www.iea.org/data-and-statistics/data-tools/greenhouse-gas-emissions-from-energy-data-explorer. 
+
 [2] “GHGRP 2023 Overview Profile.” EPA, October 2024, www.epa.gov/system/files/documents/2024-10/ghgrp-2023-overview-profile.pdf.
